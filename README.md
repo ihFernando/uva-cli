@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/uva-cli-lockup.svg" alt="uva-cli" width="420" />
+  <img src="https://raw.githubusercontent.com/ihFernando/uva-cli/main/assets/uva-cli-lockup.svg" alt="uva-cli" width="420" />
 </p>
 
 <p align="center">
