@@ -1,10 +1,11 @@
-import { text, select, confirm, isCancel } from '@clack/prompts'
+import { text, select, confirm, isCancel, log } from '@clack/prompts'
 import { bannerIntro, bannerOutro, bannerCancelled } from '../lib/banner.mjs'
-import { loadConfig, saveConfig } from '../lib/config.mjs'
+import { loadConfig, loadGlobalConfig, saveConfig, saveGlobalConfig } from '../lib/config.mjs'
 import { COMMIT_FORMATS, BRANCH_FORMATS } from '../lib/types.mjs'
 import { getLocale } from '../lib/i18n.mjs'
 
-export async function runInit() {
+export async function runInit(opts = {}) {
+  const isGlobal = Boolean(opts.global)
   bannerIntro('init')
 
   // Language is always the first question — no config exists yet
@@ -22,7 +23,11 @@ export async function runInit() {
 
   const t = getLocale({ project: { lang } })
 
-  const existing = loadConfig()
+  if (isGlobal) {
+    log.info(t.init.globalMode)
+  }
+
+  const existing = isGlobal ? loadGlobalConfig() : loadConfig()
   if (existing) {
     const overwrite = await confirm({ message: t.init.overwriteConfirm })
     if (isCancel(overwrite) || !overwrite) {
@@ -167,6 +172,6 @@ export async function runInit() {
     },
   }
 
-  const configPath = saveConfig(config)
+  const configPath = isGlobal ? saveGlobalConfig(config) : saveConfig(config)
   bannerOutro(t.init.saved(configPath))
 }

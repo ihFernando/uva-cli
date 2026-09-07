@@ -9,11 +9,15 @@ import { runStart } from './commands/start.mjs'
 
 const program = new Command()
 
-program.name('uva').description('UVA CLI — Git workflow automation').version('1.0.0')
+program.name('uva').description('UVA CLI — Git workflow automation').version('1.1.0')
 
 program.command('start').description('Show all available options interactively').action(runStart)
 
-program.command('init').description('Set up UVA CLI for this project').action(runInit)
+program
+  .command('init')
+  .description('Set up UVA CLI for this project')
+  .option('--global', 'save as global config (~/.config/uva/config.json)')
+  .action(runInit)
 
 program
   .command('commit')

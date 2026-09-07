@@ -1,29 +1,22 @@
-# 1.1.0
+# 1.2.0
 
 ## What's new
 
-### Multi-language support (English and Português BR)
+### Global configuration (`uva init --global`)
 
-All interactive prompts, messages, and errors are now fully localized. During `uva init`, the first question is the language preference — the answer is saved to `uva.config.json` and used by every subsequent command.
+UVA CLI can now be configured globally, so your personal defaults apply to every project that doesn't have its own `uva.config.json`.
 
-Supported languages:
-
-- English (`en`)
-- Português (BR) (`pt-br`)
-
-To change the language of an existing project, re-run `uva init`.
-
-### New config field: `project.lang`
-
-The chosen language is stored in `uva.config.json` under `project.lang`:
-
-```json
-{
-  "project": {
-    "name": "My Project",
-    "lang": "pt-br"
-  }
-}
+```bash
+uva init --global
 ```
 
-Accepted values: `"en"` and `"pt-br"`. Defaults to `"en"` if the field is absent.
+The global config is saved to `~/.config/uva/config.json`. The resolution order is:
+
+1. `uva.config.json` at the git root (project-level, takes priority)
+2. `~/.config/uva/config.json` (global fallback)
+
+To update your global settings at any time, re-run `uva init --global`.
+
+### "All files" shortcut in `uva commit`
+
+When there are 5 or more changed files, a new **All files** option appears at the top of the file selection list. Selecting it stages every changed file, skipping individual selection.
