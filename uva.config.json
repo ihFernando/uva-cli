@@ -1,6 +1,7 @@
 {
   "project": {
-    "name": "uva-cli"
+    "name": "uva-cli",
+    "lang": "en"
   },
   "commit": {
     "ticketEnabled": false,

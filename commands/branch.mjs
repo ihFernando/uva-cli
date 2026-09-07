@@ -4,20 +4,20 @@ import { hasUncommittedChanges, checkout, pull, createBranch } from '../lib/git.
 import { COMMIT_TYPES } from '../lib/types.mjs'
 import { requireConfig } from '../lib/config.mjs'
 import { buildBranchName } from '../lib/format.mjs'
+import { getLocale } from '../lib/i18n.mjs'
 
 // Called by commander as runBranch(options, command)
 export async function runBranch(opts = {}) {
   bannerIntro('branch')
 
   const config = requireConfig()
+  const t = getLocale(config)
 
   if (hasUncommittedChanges()) {
-    const proceed = await confirm({
-      message: 'You have uncommitted changes. They will carry over to the new branch. Continue?',
-    })
+    const proceed = await confirm({ message: t.branch.uncommittedConfirm })
     if (isCancel(proceed) || !proceed) {
-      log.info('Tip: run `uva commit` first to commit pending changes.')
-      bannerCancelled()
+      log.info(t.branch.uncommittedTip)
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
   }
@@ -26,16 +26,16 @@ export async function runBranch(opts = {}) {
   let source
   if (opts.source) {
     if (!config.branch.sources.includes(opts.source)) {
-      log.warn(`"${opts.source}" is not in the configured source branches. Proceeding anyway.`)
+      log.warn(t.branch.sourceWarn(opts.source))
     }
     source = opts.source
   } else {
     source = await select({
-      message: 'Branch from',
+      message: t.branch.source,
       options: config.branch.sources.map((b) => ({ value: b, label: b })),
     })
     if (isCancel(source)) {
-      bannerCancelled()
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
   }
@@ -47,12 +47,12 @@ export async function runBranch(opts = {}) {
       ticket = opts.ticket
     } else {
       const input = await text({
-        message: 'Ticket',
+        message: t.branch.ticket,
         placeholder: config.commit.ticketPlaceholder,
-        validate: (v) => (v.trim() ? undefined : 'Ticket cannot be empty.'),
+        validate: (v) => (v.trim() ? undefined : t.branch.ticketError),
       })
       if (isCancel(input)) {
-        bannerCancelled()
+        bannerCancelled(t.common.cancelled)
         process.exit(0)
       }
       ticket = input.trim()
@@ -64,14 +64,14 @@ export async function runBranch(opts = {}) {
   if (opts.type) {
     const valid = COMMIT_TYPES.map((t) => t.value)
     if (!valid.includes(opts.type)) {
-      log.error(`Invalid --type "${opts.type}". Valid values: ${valid.join(', ')}`)
+      log.error(t.branch.invalidType(opts.type, valid.join(', ')))
       process.exit(1)
     }
     type = opts.type
   } else {
-    type = await select({ message: 'Branch type', options: COMMIT_TYPES })
+    type = await select({ message: t.branch.type, options: COMMIT_TYPES })
     if (isCancel(type)) {
-      bannerCancelled()
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
   }
@@ -82,12 +82,12 @@ export async function runBranch(opts = {}) {
     taskName = opts.name
   } else {
     const input = await text({
-      message: 'Task name',
-      placeholder: 'add login screen',
-      validate: (v) => (v.trim() ? undefined : 'Task name cannot be empty.'),
+      message: t.branch.name,
+      placeholder: t.branch.namePlaceholder,
+      validate: (v) => (v.trim() ? undefined : t.branch.nameError),
     })
     if (isCancel(input)) {
-      bannerCancelled()
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
     taskName = input.trim()
@@ -100,9 +100,9 @@ export async function runBranch(opts = {}) {
   const scripted = opts.source && opts.type && opts.name && ticketDone
 
   if (!scripted) {
-    const confirmed = await confirm({ message: `Create branch:\n  ${branchName}` })
+    const confirmed = await confirm({ message: t.branch.confirm(branchName) })
     if (isCancel(confirmed) || !confirmed) {
-      bannerCancelled()
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
   }
@@ -110,16 +110,14 @@ export async function runBranch(opts = {}) {
   try {
     checkout(source)
   } catch {
-    log.error(
-      `Could not switch to ${source}. Make sure the branch exists and there are no conflicts.`,
-    )
+    log.error(t.branch.checkoutError(source))
     process.exit(1)
   }
 
   try {
     pull()
   } catch {
-    log.error('Could not pull. Check your connection or resolve any conflicts.')
+    log.error(t.branch.pullError)
     process.exit(1)
   }
 
@@ -127,12 +125,12 @@ export async function runBranch(opts = {}) {
     createBranch(branchName)
   } catch (err) {
     if (err.stderr?.includes('already exists') || err.message?.includes('already exists')) {
-      log.error(`Branch "${branchName}" already exists. Choose a different name or ticket.`)
+      log.error(t.branch.branchExists(branchName))
     } else {
-      log.error('Could not create the branch. Check if the name is valid.')
+      log.error(t.branch.createError)
     }
     process.exit(1)
   }
 
-  bannerOutro(`Branch created: ${branchName}`)
+  bannerOutro(t.branch.done(branchName))
 }

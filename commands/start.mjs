@@ -1,6 +1,8 @@
 import { select, isCancel, intro, outro } from '@clack/prompts'
 import pc from 'picocolors'
 import { banner as brandBanner, uva, folha } from '../lib/colors.mjs'
+import { loadConfig } from '../lib/config.mjs'
+import { getLocale } from '../lib/i18n.mjs'
 import { runInit } from './init.mjs'
 import { runCommit } from './commit.mjs'
 import { runBranch } from './branch.mjs'
@@ -8,48 +10,51 @@ import { runNewFile } from './new-file.mjs'
 import { runPush } from './push.mjs'
 
 export async function runStart() {
+  const t = getLocale(loadConfig())
+
   intro(brandBanner('UVA CLI'))
 
   console.log('')
-  console.log(uva('  uva-cli') + pc.dim(' — Git workflow automation'))
+  console.log(uva('  uva-cli') + pc.dim(` ${t.start.tagline}`))
   console.log('')
-  console.log(pc.dim('  Guides your team through branch creation and commits'))
-  console.log(pc.dim('  following whatever conventions your project defines.'))
+  console.log(pc.dim(`  ${t.start.desc1}`))
+  console.log(pc.dim(`  ${t.start.desc2}`))
   console.log('')
 
+  const o = t.start.options
   const action = await select({
-    message: 'What do you want to do?',
+    message: t.start.prompt,
     options: [
       {
         value: 'init',
-        label: folha('uva init') + '     Set up UVA CLI for this project',
-        hint: 'configure commit and branch patterns',
+        label: folha('uva init') + '     ' + o.init.label,
+        hint: o.init.hint,
       },
       {
         value: 'commit',
-        label: uva('uva commit') + '   Create an interactive commit',
-        hint: 'select files, type, ticket and message',
+        label: uva('uva commit') + '   ' + o.commit.label,
+        hint: o.commit.hint,
       },
       {
         value: 'branch',
-        label: uva('uva branch') + '   Create a new branch',
-        hint: 'checks out source and pulls automatically',
+        label: uva('uva branch') + '   ' + o.branch.label,
+        hint: o.branch.hint,
       },
       {
         value: 'new-file',
-        label: uva('uva new-file') + ' Scaffold a file from a template',
-        hint: 'docs, frontend (React), or backend (Express)',
+        label: uva('uva new-file') + ' ' + o.newFile.label,
+        hint: o.newFile.hint,
       },
       {
         value: 'push',
-        label: uva('uva push') + '     Push the current branch to origin',
-        hint: 'confirms the branch and runs git push',
+        label: uva('uva push') + '     ' + o.push.label,
+        hint: o.push.hint,
       },
     ],
   })
 
   if (isCancel(action)) {
-    outro(pc.dim('Operation cancelled.'))
+    outro(pc.dim(t.common.cancelled))
     process.exit(0)
   }
 

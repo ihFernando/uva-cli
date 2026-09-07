@@ -4,16 +4,18 @@ import { getChangedFiles, addFiles, commit } from '../lib/git.mjs'
 import { COMMIT_TYPES } from '../lib/types.mjs'
 import { requireConfig } from '../lib/config.mjs'
 import { buildCommitMessage } from '../lib/format.mjs'
+import { getLocale } from '../lib/i18n.mjs'
 
 // Called by commander as runCommit(options, command)
 export async function runCommit(opts = {}) {
   bannerIntro('commit')
 
   const config = requireConfig()
+  const t = getLocale(config)
   const files = getChangedFiles()
 
   if (files.length === 0) {
-    log.info('Nothing to commit here.')
+    log.info(t.commit.nothingToCommit)
     process.exit(0)
   }
 
@@ -22,14 +24,14 @@ export async function runCommit(opts = {}) {
   if (opts.type) {
     const valid = COMMIT_TYPES.map((t) => t.value)
     if (!valid.includes(opts.type)) {
-      log.error(`Invalid --type "${opts.type}". Valid values: ${valid.join(', ')}`)
+      log.error(t.commit.invalidType(opts.type, valid.join(', ')))
       process.exit(1)
     }
     type = opts.type
   } else {
-    type = await select({ message: 'Commit type', options: COMMIT_TYPES })
+    type = await select({ message: t.commit.type, options: COMMIT_TYPES })
     if (isCancel(type)) {
-      bannerCancelled()
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
   }
@@ -41,12 +43,12 @@ export async function runCommit(opts = {}) {
       ticket = opts.ticket
     } else {
       const input = await text({
-        message: 'Ticket',
+        message: t.commit.ticket,
         placeholder: config.commit.ticketPlaceholder,
-        validate: (v) => (v.trim() ? undefined : 'Ticket cannot be empty.'),
+        validate: (v) => (v.trim() ? undefined : t.commit.ticketError),
       })
       if (isCancel(input)) {
-        bannerCancelled()
+        bannerCancelled(t.common.cancelled)
         process.exit(0)
       }
       ticket = input.trim()
@@ -64,21 +66,19 @@ export async function runCommit(opts = {}) {
       message = opts.message.trim().toLowerCase()
     } else {
       const input = await text({
-        message: 'Commit message',
-        placeholder: 'add login screen',
-        validate: (v) => (v.trim() ? undefined : 'Message cannot be empty.'),
+        message: t.commit.message,
+        placeholder: t.commit.messagePlaceholder,
+        validate: (v) => (v.trim() ? undefined : t.commit.messageError),
       })
       if (isCancel(input)) {
-        bannerCancelled()
+        bannerCancelled(t.common.cancelled)
         process.exit(0)
       }
       message = input.trim().toLowerCase()
     }
 
     if (message.length > 72) {
-      log.warn(
-        'Message is long (over 72 characters). Shorter messages are recommended, but you can continue.',
-      )
+      log.warn(t.commit.messageLong)
     }
 
     // Files
@@ -92,19 +92,29 @@ export async function runCommit(opts = {}) {
       const availablePaths = files.map((f) => f.path)
       const invalid = paths.filter((p) => !availablePaths.includes(p))
       if (invalid.length) {
-        log.error(`Unknown file(s): ${invalid.join(', ')}\nAvailable: ${availablePaths.join(', ')}`)
+        log.error(t.commit.unknownFiles(invalid.join(', '), availablePaths.join(', ')))
         process.exit(1)
       }
       selected = paths
     } else {
+      const fileOptions = files.map((f) => ({
+        value: f.path,
+        label: `${f.status.padEnd(2)}  ${f.path}`,
+      }))
+      if (files.length >= 5) {
+        fileOptions.unshift({ value: '__all__', label: t.commit.allFiles })
+      }
       selected = await multiselect({
-        message: 'Which files to include in the commit?',
-        options: files.map((f) => ({ value: f.path, label: `${f.status.padEnd(2)}  ${f.path}` })),
+        message: t.commit.files,
+        options: fileOptions,
         required: true,
       })
       if (isCancel(selected)) {
-        bannerCancelled()
+        bannerCancelled(t.common.cancelled)
         process.exit(0)
+      }
+      if (selected.includes('__all__')) {
+        selected = files.map((f) => f.path)
       }
     }
 
@@ -114,23 +124,23 @@ export async function runCommit(opts = {}) {
     const scripted = opts.type && opts.message && (opts.all || opts.files)
     if (scripted) break
 
-    const confirmed = await confirm({ message: `Commit with message:\n  ${finalMessage}` })
+    const confirmed = await confirm({ message: t.commit.confirm(finalMessage) })
     if (isCancel(confirmed)) {
-      bannerCancelled()
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
     if (confirmed) break
 
     if (opts.message) break // message is fixed, can't retry
-    log.info("OK! Let's rewrite the message.")
+    log.info(t.commit.retry)
   }
 
   try {
     addFiles(selected)
     commit(finalMessage)
-    bannerOutro(`Committed: ${finalMessage}`)
+    bannerOutro(t.commit.done(finalMessage))
   } catch (e) {
-    log.error(`Commit failed: ${e.message}`)
+    log.error(t.commit.failed(e.message))
     process.exit(1)
   }
 }

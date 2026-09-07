@@ -1,6 +1,6 @@
 {
   "name": "uva-cli",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "UVA CLI — Interactive Git workflow automation for teams",
   "type": "module",
   "bin": {

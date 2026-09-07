@@ -2,36 +2,48 @@ import { text, select, confirm, isCancel } from '@clack/prompts'
 import { bannerIntro, bannerOutro, bannerCancelled } from '../lib/banner.mjs'
 import { loadConfig, saveConfig } from '../lib/config.mjs'
 import { COMMIT_FORMATS, BRANCH_FORMATS } from '../lib/types.mjs'
+import { getLocale } from '../lib/i18n.mjs'
 
 export async function runInit() {
   bannerIntro('init')
 
+  // Language is always the first question — no config exists yet
+  const lang = await select({
+    message: 'Language / Idioma',
+    options: [
+      { value: 'en', label: 'English' },
+      { value: 'pt-br', label: 'Português (BR)' },
+    ],
+  })
+  if (isCancel(lang)) {
+    bannerCancelled()
+    process.exit(0)
+  }
+
+  const t = getLocale({ project: { lang } })
+
   const existing = loadConfig()
   if (existing) {
-    const overwrite = await confirm({
-      message: 'A configuration already exists. Do you want to overwrite it?',
-    })
+    const overwrite = await confirm({ message: t.init.overwriteConfirm })
     if (isCancel(overwrite) || !overwrite) {
-      bannerCancelled()
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
   }
 
   const projectName = await text({
-    message: 'Project name',
-    placeholder: 'My Awesome Project',
-    validate: (v) => (v.trim() ? undefined : 'Project name cannot be empty.'),
+    message: t.init.projectName,
+    placeholder: t.init.projectNamePlaceholder,
+    validate: (v) => (v.trim() ? undefined : t.init.projectNameError),
   })
   if (isCancel(projectName)) {
-    bannerCancelled()
+    bannerCancelled(t.common.cancelled)
     process.exit(0)
   }
 
-  const useTicket = await confirm({
-    message: 'Do you use a ticket/issue tracker? (e.g., Jira, Linear, GitHub Issues)',
-  })
+  const useTicket = await confirm({ message: t.init.ticketConfirm })
   if (isCancel(useTicket)) {
-    bannerCancelled()
+    bannerCancelled(t.common.cancelled)
     process.exit(0)
   }
 
@@ -40,12 +52,12 @@ export async function runInit() {
 
   if (useTicket) {
     const prefix = await text({
-      message: 'Ticket prefix',
-      placeholder: 'PROJ',
-      validate: (v) => (v.trim() ? undefined : 'Ticket prefix cannot be empty.'),
+      message: t.init.ticketPrefix,
+      placeholder: t.init.ticketPrefixPlaceholder,
+      validate: (v) => (v.trim() ? undefined : t.init.ticketPrefixError),
     })
     if (isCancel(prefix)) {
-      bannerCancelled()
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
     ticketPrefix = prefix.trim().toUpperCase()
@@ -55,33 +67,33 @@ export async function runInit() {
   let commitFormat = 'conventional'
   if (useTicket) {
     const selectedCommitFormat = await select({
-      message: 'Choose a commit message format',
+      message: t.init.commitFormat,
       options: COMMIT_FORMATS.map((f) => ({
         ...f,
         label: f.label.replace(/PROJ/g, ticketPrefix || 'PROJ'),
       })),
     })
     if (isCancel(selectedCommitFormat)) {
-      bannerCancelled()
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
     commitFormat = selectedCommitFormat
   }
 
   const sourcesInput = await text({
-    message: 'Branches to branch from (comma-separated)',
-    placeholder: 'main,develop',
+    message: t.init.sources,
+    placeholder: t.init.sourcesPlaceholder,
     initialValue: 'main,develop',
     validate: (v) => {
       const parts = v
         .split(',')
         .map((s) => s.trim())
         .filter(Boolean)
-      return parts.length > 0 ? undefined : 'At least one branch is required.'
+      return parts.length > 0 ? undefined : t.init.sourcesError
     },
   })
   if (isCancel(sourcesInput)) {
-    bannerCancelled()
+    bannerCancelled(t.common.cancelled)
     process.exit(0)
   }
   const sources = sourcesInput
@@ -92,44 +104,44 @@ export async function runInit() {
   let branchFormat = 'type-name'
   if (useTicket) {
     const selectedBranchFormat = await select({
-      message: 'Choose a branch naming format',
+      message: t.init.branchFormat,
       options: BRANCH_FORMATS.map((f) => ({
         ...f,
         label: f.label.replace(/PROJ/g, ticketPrefix || 'PROJ'),
       })),
     })
     if (isCancel(selectedBranchFormat)) {
-      bannerCancelled()
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
     branchFormat = selectedBranchFormat
   }
 
   const useArea = await confirm({
-    message: 'Do you want to categorize branches by area? (e.g., FE, BE, DOC)',
+    message: t.init.areaConfirm,
     initialValue: false,
   })
   if (isCancel(useArea)) {
-    bannerCancelled()
+    bannerCancelled(t.common.cancelled)
     process.exit(0)
   }
 
   let areas = []
   if (useArea) {
     const areasInput = await text({
-      message: 'Area labels (comma-separated)',
-      placeholder: 'FE,BE,DOC',
+      message: t.init.areaLabels,
+      placeholder: t.init.areaLabelsPlaceholder,
       initialValue: 'FE,BE,DOC',
       validate: (v) => {
         const parts = v
           .split(',')
           .map((s) => s.trim())
           .filter(Boolean)
-        return parts.length > 0 ? undefined : 'At least one area is required.'
+        return parts.length > 0 ? undefined : t.init.areaLabelsError
       },
     })
     if (isCancel(areasInput)) {
-      bannerCancelled()
+      bannerCancelled(t.common.cancelled)
       process.exit(0)
     }
     areas = areasInput
@@ -139,7 +151,7 @@ export async function runInit() {
   }
 
   const config = {
-    project: { name: projectName.trim() },
+    project: { name: projectName.trim(), lang },
     commit: {
       ticketEnabled: Boolean(useTicket),
       ticketPrefix,
@@ -156,5 +168,5 @@ export async function runInit() {
   }
 
   const configPath = saveConfig(config)
-  bannerOutro(`Configuration saved to ${configPath}`)
+  bannerOutro(t.init.saved(configPath))
 }
