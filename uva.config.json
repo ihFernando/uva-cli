@@ -1,0 +1,18 @@
+{
+  "project": {
+    "name": "uva-cli"
+  },
+  "commit": {
+    "ticketEnabled": false,
+    "ticketPrefix": "",
+    "ticketPlaceholder": "",
+    "format": "conventional"
+  },
+  "branch": {
+    "sources": ["main"],
+    "ticketEnabled": false,
+    "areaEnabled": false,
+    "areas": [],
+    "format": "type-name"
+  }
+}

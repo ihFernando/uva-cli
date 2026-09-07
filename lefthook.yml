@@ -1,0 +1,24 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: '*.{mjs,js}'
+      run: npx eslint {staged_files}
+    format:
+      glob: '*.{mjs,js,json,md}'
+      run: npx prettier --check {staged_files}
+    test:
+      run: npm test
+
+commit-msg:
+  commands:
+    conventional:
+      run: |
+        msg=$(cat {1})
+        pattern='^(feat|fix|docs|style|refactor|test|chore|ci|revert|improvement)(\(.+\))?: .{1,}'
+        if ! echo "$msg" | grep -qE "$pattern"; then
+          echo "Commit message must follow Conventional Commits:"
+          echo "  <type>(<scope>): <description>"
+          echo "  Valid types: feat, fix, docs, style, refactor, test, chore, ci, revert, improvement"
+          exit 1
+        fi
