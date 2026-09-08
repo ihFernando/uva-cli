@@ -61,6 +61,25 @@ source ~/.zshrc
 
 ## Quick start
 
+### Joining a project that already uses UVA?
+
+If your repo already has a `uva.config.json`, you just need to install the CLI globally on your machine — no need to run `uva init` again:
+
+```bash
+npm install -g uva-cli
+```
+
+Then you're ready to use `uva commit`, `uva branch`, and the rest.
+
+> **New to CLIs?** A global install means the `uva` command becomes available everywhere in your terminal, just like `git` or `node`. If you'd rather not install anything permanently, you can prefix any command with `npx` and it will run without a global install:
+>
+> ```bash
+> npx uva-cli commit
+> npx uva-cli branch
+> ```
+
+---
+
 ### 1. Set up your project
 
 Run this once inside any Git repository:
