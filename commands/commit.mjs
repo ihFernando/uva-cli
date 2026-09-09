@@ -1,10 +1,16 @@
 import { select, text, multiselect, confirm, isCancel, log } from '@clack/prompts'
 import { bannerIntro, bannerOutro, bannerCancelled } from '../lib/banner.mjs'
-import { getChangedFiles, addFiles, commit } from '../lib/git.mjs'
+import { getChangedFiles, getCurrentBranch, addFiles, commit } from '../lib/git.mjs'
 import { COMMIT_TYPES } from '../lib/types.mjs'
 import { requireConfig } from '../lib/config.mjs'
 import { buildCommitMessage } from '../lib/format.mjs'
 import { getLocale } from '../lib/i18n.mjs'
+
+function extractTicketFromBranch(branch, prefix) {
+  if (!prefix) return ''
+  const m = branch.match(new RegExp(`(${prefix}-\\d+)`, 'i'))
+  return m ? m[1].toUpperCase() : ''
+}
 
 // Called by commander as runCommit(options, command)
 export async function runCommit(opts = {}) {
@@ -42,9 +48,11 @@ export async function runCommit(opts = {}) {
     if (opts.ticket) {
       ticket = opts.ticket
     } else {
+      const branchTicket = extractTicketFromBranch(getCurrentBranch(), config.commit.ticketPrefix)
       const input = await text({
         message: t.commit.ticket,
         placeholder: config.commit.ticketPlaceholder,
+        initialValue: branchTicket,
         validate: (v) => (v.trim() ? undefined : t.commit.ticketError),
       })
       if (isCancel(input)) {

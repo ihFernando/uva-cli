@@ -17,7 +17,7 @@ export async function runInit(opts = {}) {
     ],
   })
   if (isCancel(lang)) {
-    bannerCancelled()
+    bannerCancelled('Operation cancelled.')
     process.exit(0)
   }
 
