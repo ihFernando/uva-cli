@@ -1,6 +1,24 @@
-# 1.3.0
+## 1.4.0
 
-## What's new
+### Commit flow reordered
+
+File selection in `uva commit` now comes **first** — before choosing the commit type and ticket. This matches the natural mental model: you see what changed, then decide how to label it.
+
+### `git switch` replaces `git checkout`
+
+Branch switching and creation now use `git switch` and `git switch -c`, the modern Git commands recommended since v2.23.
+
+### `uva init` removed from the start menu (when already configured)
+
+Once a project has a `uva.config.json`, `uva init` no longer clutters the menu. Instead, a translated tip appears below the welcome banner:
+
+> Tip: run `uva init` to reconfigure this project
+
+If no config exists (first run), `uva init` still appears at the top of the menu as before.
+
+---
+
+## 1.3.0
 
 ### Session mode in `uva start`
 
@@ -20,9 +38,7 @@ All strings in `uva start` (welcome message, exit option) are now covered by the
 
 ---
 
-# 1.2.0
-
-## What's new
+## 1.2.0
 
 ### Global configuration (`uva init --global`)
 

@@ -17,42 +17,53 @@ export async function runStart() {
   printWelcome(config)
   console.log('')
 
+  if (config) {
+    console.log('  ' + pc.dim(t.start.initTip(folha('uva init'))))
+    console.log('')
+  }
+
   const o = t.start.options
 
   while (true) {
+    const options = [
+      ...(config
+        ? []
+        : [
+            {
+              value: 'init',
+              label: folha('uva init') + '     ' + o.init.label,
+              hint: o.init.hint,
+            },
+          ]),
+      {
+        value: 'branch',
+        label: uva('uva branch') + '   ' + o.branch.label,
+        hint: o.branch.hint,
+      },
+      {
+        value: 'new-file',
+        label: uva('uva new-file') + ' ' + o.newFile.label,
+        hint: o.newFile.hint,
+      },
+      {
+        value: 'commit',
+        label: uva('uva commit') + '   ' + o.commit.label,
+        hint: o.commit.hint,
+      },
+      {
+        value: 'push',
+        label: uva('uva push') + '     ' + o.push.label,
+        hint: o.push.hint,
+      },
+      {
+        value: 'exit',
+        label: pc.dim('exit') + '          ' + o.exit.label,
+      },
+    ]
+
     const action = await select({
       message: t.start.prompt,
-      options: [
-        {
-          value: 'init',
-          label: folha('uva init') + '     ' + o.init.label,
-          hint: o.init.hint,
-        },
-        {
-          value: 'commit',
-          label: uva('uva commit') + '   ' + o.commit.label,
-          hint: o.commit.hint,
-        },
-        {
-          value: 'branch',
-          label: uva('uva branch') + '   ' + o.branch.label,
-          hint: o.branch.hint,
-        },
-        {
-          value: 'new-file',
-          label: uva('uva new-file') + ' ' + o.newFile.label,
-          hint: o.newFile.hint,
-        },
-        {
-          value: 'push',
-          label: uva('uva push') + '     ' + o.push.label,
-          hint: o.push.hint,
-        },
-        {
-          value: 'exit',
-          label: pc.dim('exit') + '          ' + o.exit.label,
-        },
-      ],
+      options,
     })
 
     if (isCancel(action) || action === 'exit') {

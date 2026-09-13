@@ -25,6 +25,42 @@ export async function runCommit(opts = {}) {
     process.exit(0)
   }
 
+  // ── Files ─────────────────────────────────────────────────────────────────
+  let selected
+  if (opts.all) {
+    selected = files.map((f) => f.path)
+  } else if (opts.files) {
+    const paths = opts.files
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    const availablePaths = files.map((f) => f.path)
+    const invalid = paths.filter((p) => !availablePaths.includes(p))
+    if (invalid.length) {
+      log.error(t.commit.unknownFiles(invalid.join(', '), availablePaths.join(', ')))
+      process.exit(1)
+    }
+    selected = paths
+  } else {
+    const fileOptions = files.map((f) => ({
+      value: f.path,
+      label: `${f.status.padEnd(2)}  ${f.path}`,
+    }))
+    if (files.length >= 5) {
+      fileOptions.unshift({ value: '__all__', label: t.commit.allFiles })
+    }
+    const pick = await multiselect({
+      message: t.commit.files,
+      options: fileOptions,
+      required: true,
+    })
+    if (isCancel(pick)) {
+      bannerCancelled(t.common.cancelled)
+      process.exit(0)
+    }
+    selected = pick.includes('__all__') ? files.map((f) => f.path) : pick
+  }
+
   // ── Commit type ──────────────────────────────────────────────────────────
   let type
   if (opts.type) {
@@ -63,12 +99,10 @@ export async function runCommit(opts = {}) {
     }
   }
 
-  // ── Message + files (retry loop for interactive use) ─────────────────────
+  // ── Message (retry loop) ──────────────────────────────────────────────────
   let finalMessage
-  let selected
 
   while (true) {
-    // Message
     let message
     if (opts.message) {
       message = opts.message.trim().toLowerCase()
@@ -87,43 +121,6 @@ export async function runCommit(opts = {}) {
 
     if (message.length > 72) {
       log.warn(t.commit.messageLong)
-    }
-
-    // Files
-    if (opts.all) {
-      selected = files.map((f) => f.path)
-    } else if (opts.files) {
-      const paths = opts.files
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
-      const availablePaths = files.map((f) => f.path)
-      const invalid = paths.filter((p) => !availablePaths.includes(p))
-      if (invalid.length) {
-        log.error(t.commit.unknownFiles(invalid.join(', '), availablePaths.join(', ')))
-        process.exit(1)
-      }
-      selected = paths
-    } else {
-      const fileOptions = files.map((f) => ({
-        value: f.path,
-        label: `${f.status.padEnd(2)}  ${f.path}`,
-      }))
-      if (files.length >= 5) {
-        fileOptions.unshift({ value: '__all__', label: t.commit.allFiles })
-      }
-      selected = await multiselect({
-        message: t.commit.files,
-        options: fileOptions,
-        required: true,
-      })
-      if (isCancel(selected)) {
-        bannerCancelled(t.common.cancelled)
-        process.exit(0)
-      }
-      if (selected.includes('__all__')) {
-        selected = files.map((f) => f.path)
-      }
     }
 
     finalMessage = buildCommitMessage(config.commit.format, { type, ticket, message })
