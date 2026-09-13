@@ -1,8 +1,9 @@
 import { confirm, isCancel, log } from '@clack/prompts'
 import { bannerIntro, bannerOutro, bannerCancelled } from '../lib/banner.mjs'
-import { getCurrentBranch } from '../lib/git.mjs'
+import { getCurrentBranch, getRemoteUrl } from '../lib/git.mjs'
 import { loadConfig } from '../lib/config.mjs'
 import { getLocale } from '../lib/i18n.mjs'
+import { buildPrUrl, openBrowser } from '../lib/pr.mjs'
 import { spawnSync } from 'child_process'
 
 // Called by commander as runPush(options, command)
@@ -29,4 +30,14 @@ export async function runPush(opts = {}) {
   }
 
   bannerOutro(t.push.done(branch))
+
+  if (!opts.yes) {
+    const prUrl = buildPrUrl(getRemoteUrl(), branch)
+    if (prUrl) {
+      const open = await confirm({ message: t.push.openPr })
+      if (!isCancel(open) && open) {
+        openBrowser(prUrl)
+      }
+    }
+  }
 }
