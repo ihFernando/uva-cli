@@ -1,0 +1,582 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const GITHUB_URL = 'https://github.com/ihfernando/uva-cli'; // TODO: update
+const VERSION = '1.4.0';
+
+const commitFormats = [
+  {
+    id: 'conventional-ticket',
+    label: 'conventional-ticket',
+    example: 'feat(PROJ-42): add auth refresh token',
+    desc: 'Standard conventional commit with ticket in scope',
+    isDefault: true,
+  },
+  {
+    id: 'conventional',
+    label: 'conventional',
+    example: 'feat: add auth refresh token',
+    desc: 'Clean conventional commit without ticket',
+    isDefault: false,
+  },
+  {
+    id: 'ticket-conventional',
+    label: 'ticket-conventional',
+    example: '[PROJ-42] feat: add auth refresh token',
+    desc: 'Ticket prefix before the type',
+    isDefault: false,
+  },
+];
+
+const branchFormats = [
+  {
+    id: 'type-ticket-name',
+    label: 'type-ticket-name',
+    example: 'feat/PROJ-42_auth-refresh-token',
+    desc: 'Type prefix, ticket, then slugified name',
+    isDefault: true,
+  },
+  {
+    id: 'type-name',
+    label: 'type-name',
+    example: 'feat/auth-refresh-token',
+    desc: 'Type prefix and slugified name only',
+    isDefault: false,
+  },
+  {
+    id: 'ticket-type-name',
+    label: 'ticket-type-name',
+    example: 'PROJ-42/feat/auth-refresh-token',
+    desc: 'Ticket as top-level folder',
+    isDefault: false,
+  },
+];
+---
+
+<Layout>
+  
+  <nav
+    class="fixed top-0 inset-x-0 z-50 border-b border-uva-200/60 dark:border-white/5 bg-uva-50/80 dark:bg-[#0d0a1a]/80 backdrop-blur-xl"
+  >
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      
+      <div class="flex items-center gap-2.5">
+        <img src="/uva-cli/logo.svg" alt="uva-cli logo" class="w-7 h-auto" />
+        <div><span class="font-bold text-base text-uva-ink dark:text-white tracking-tight">uva</span><span class="font-bold text-base text-uva-700 dark:text-uva-400 tracking-tight">-cli</span>
+        </div><span
+          class="text-[11px] px-2 py-0.5 rounded-full bg-uva-100 dark:bg-uva-700/20 text-uva-700 dark:text-uva-400 border border-uva-300/60 dark:border-uva-500/30 font-medium"
+          >v{VERSION}</span
+        >
+        
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a
+          href="#install"
+          class="hidden sm:block text-sm text-slate-500 dark:text-zinc-400 hover:text-uva-700 dark:hover:text-white transition-colors font-medium px-3 py-1.5"
+          >Install</a
+        >
+
+        
+        <button
+          id="theme-toggle"
+          aria-label="Toggle light/dark theme"
+          class="p-2 rounded-lg text-slate-400 dark:text-zinc-400 hover:text-uva-700 dark:hover:text-uva-400 hover:bg-uva-100 dark:hover:bg-uva-700/20 transition-all"
+        >
+          
+          <svg id="sun-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          
+          <svg id="moon-icon" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <a
+          href={GITHUB_URL}
+          target="_blank"
+          rel="noopener"
+          class="flex items-center gap-2 px-4 py-2 rounded-lg border border-uva-300/60 dark:border-zinc-700 hover:border-uva-400 dark:hover:border-zinc-500 text-slate-600 dark:text-zinc-300 hover:text-uva-700 dark:hover:text-white text-sm font-medium transition-all hover:bg-uva-100 dark:hover:bg-zinc-900"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  
+  <section class="relative pt-32 pb-24 px-6 overflow-hidden">
+    
+    <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[600px] rounded-full bg-gradient-to-b from-uva-400/20 dark:from-uva-700/20 via-uva-300/5 dark:via-uva-900/10 to-transparent blur-3xl animate-glow"></div>
+      <div class="absolute top-60 -left-60 w-[500px] h-[500px] rounded-full bg-uva-300/10 dark:bg-uva-900/20 blur-3xl"></div>
+      <div class="absolute top-40 -right-40 w-[400px] h-[400px] rounded-full bg-folha/5 dark:bg-folha/5 blur-3xl"></div>
+    </div>
+
+    <div class="relative max-w-6xl mx-auto">
+      <div class="grid lg:grid-cols-2 gap-14 items-center">
+        
+        <div class="animate-fade-up" style="animation-delay:0ms">
+
+          <h1 class="text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.1] mb-6 text-uva-ink dark:text-white">
+            Git workflows,<br />
+            <span class="bg-gradient-to-r from-uva-700 via-uva-600 to-uva-400 dark:from-uva-300 dark:via-uva-400 dark:to-uva-600 bg-clip-text text-transparent">
+              beautifully automated
+            </span>
+          </h1>
+
+          <p class="text-slate-600 dark:text-zinc-400 text-lg leading-relaxed mb-10 max-w-xl">
+            Interactive CLI for conventional commits and smart branch naming.
+            Config-driven formats, ticket integration, and a delightful
+            developer experience — for the whole team.
+          </p>
+
+          
+          <div class="flex items-center gap-3 p-4 rounded-xl border border-uva-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/60 font-mono text-sm mb-8">
+            <span class="text-slate-400 dark:text-zinc-500 select-none">$</span>
+            <span id="install-cmd" class="text-uva-ink dark:text-white flex-1 select-all">npm install -g uva-cli</span>
+            <button
+              id="copy-btn"
+              aria-label="Copy install command"
+              class="text-slate-400 dark:text-zinc-500 hover:text-uva-600 dark:hover:text-uva-400 transition-colors p-1 rounded"
+            >
+              <svg id="copy-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+              </svg>
+              <svg id="check-icon" class="w-4 h-4 hidden text-folha dark:text-folha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <div class="flex items-center flex-wrap gap-3">
+            <a
+              href="#install"
+              class="px-6 py-3 rounded-xl bg-gradient-to-r from-uva-700 to-uva-600 dark:from-uva-600 dark:to-uva-500 text-white font-semibold hover:opacity-90 transition-opacity text-sm shadow-lg shadow-uva-700/20 dark:shadow-uva-600/30"
+            >
+              Get Started
+            </a>
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener"
+              class="px-6 py-3 rounded-xl border border-uva-300/60 dark:border-zinc-700 text-slate-600 dark:text-zinc-300 hover:text-uva-700 dark:hover:text-white hover:border-uva-400 dark:hover:border-zinc-500 font-medium transition-all text-sm hover:bg-uva-100/50 dark:hover:bg-zinc-900"
+            >
+              View on GitHub →
+            </a>
+          </div>
+        </div>
+
+        
+        <div class="animate-fade-up relative" style="animation-delay:150ms">
+          <div class="absolute inset-0 bg-gradient-to-r from-uva-500/20 to-uva-700/20 blur-2xl rounded-2xl -z-10 scale-95"></div>
+          <div class="rounded-2xl border border-uva-300/20 dark:border-white/10 bg-[#0d0a14] overflow-hidden shadow-2xl shadow-black/30 dark:shadow-black/60">
+            
+            <div class="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-[#0f0c18]">
+              <div class="w-3 h-3 rounded-full bg-red-500/70"></div>
+              <div class="w-3 h-3 rounded-full bg-yellow-500/70"></div>
+              <div class="w-3 h-3 rounded-full bg-green-500/70"></div>
+              <span class="ml-auto text-zinc-600 text-xs font-mono">zsh &mdash; uva-cli</span>
+            </div>
+            
+            <div
+              id="terminal-output"
+              class="p-5 font-mono text-sm leading-6 h-80 overflow-y-auto text-zinc-300 scroll-smooth"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <section id="formats" class="py-24 px-6 border-t border-uva-200/50 dark:border-white/5">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="text-uva-700 dark:text-uva-400 text-sm font-semibold uppercase tracking-widest mb-3">Formats</p>
+        <h2 class="text-4xl font-bold tracking-tight text-uva-ink dark:text-white">Your format, your rules</h2>
+        <p class="text-slate-500 dark:text-zinc-400 mt-4 text-lg max-w-xl mx-auto">
+          Choose commit and branch formats that match your team's conventions. Configured once, consistent for everyone.
+        </p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-8">
+        
+        <div>
+          <h3 class="text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest mb-5">Commit formats</h3>
+          <div class="space-y-3">
+            {
+              commitFormats.map((f) => (
+                <div class={`rounded-xl border p-5 transition-all ${f.isDefault ? 'border-uva-400/50 dark:border-uva-500/40 bg-uva-50 dark:bg-uva-500/5' : 'border-uva-200/60 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/40'}`}>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-mono text-slate-400 dark:text-zinc-500 bg-uva-100/80 dark:bg-zinc-800 px-2 py-0.5 rounded">{f.label}</span>
+                    {f.isDefault && <span class="text-[10px] text-uva-700 dark:text-uva-400 font-medium">default</span>}
+                  </div>
+                  <code class="text-sm font-mono text-uva-ink dark:text-white block mb-1">{f.example}</code>
+                  <p class="text-xs text-slate-400 dark:text-zinc-500">{f.desc}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
+        
+        <div>
+          <h3 class="text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest mb-5">Branch formats</h3>
+          <div class="space-y-3">
+            {
+              branchFormats.map((f) => (
+                <div class={`rounded-xl border p-5 transition-all ${f.isDefault ? 'border-uva-400/50 dark:border-uva-500/40 bg-uva-50 dark:bg-uva-500/5' : 'border-uva-200/60 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/40'}`}>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-mono text-slate-400 dark:text-zinc-500 bg-uva-100/80 dark:bg-zinc-800 px-2 py-0.5 rounded">{f.label}</span>
+                    {f.isDefault && <span class="text-[10px] text-uva-700 dark:text-uva-400 font-medium">default</span>}
+                  </div>
+                  <code class="text-sm font-mono text-uva-ink dark:text-white block mb-1">{f.example}</code>
+                  <p class="text-xs text-slate-400 dark:text-zinc-500">{f.desc}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <section id="config" class="py-24 px-6 border-t border-uva-200/50 dark:border-white/5">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid lg:grid-cols-2 gap-14 items-center">
+        <div>
+          <p class="text-uva-700 dark:text-uva-400 text-sm font-semibold uppercase tracking-widest mb-3">Configuration</p>
+          <h2 class="text-4xl font-bold tracking-tight mb-6 text-uva-ink dark:text-white">One file, the whole team aligned</h2>
+          <p class="text-slate-500 dark:text-zinc-400 text-lg leading-relaxed mb-8">
+            <code class="text-uva-700 dark:text-uva-300 font-mono text-sm bg-uva-100 dark:bg-uva-500/10 px-1.5 py-0.5 rounded">uva.config.json</code>
+            lives at the root of your git repo. Commit it alongside your code and every developer gets the same experience automatically.
+          </p>
+          <ul class="space-y-4">
+            {
+              [
+                ['project.name', 'Display name for your project'],
+                ['commit.ticketPrefix', 'e.g. PROJ, FE, API — pre-fills prompts'],
+                ['commit.format', 'Which commit format to use'],
+                ['branch.sources', 'Branches you can create from (main, develop…)'],
+                ['branch.format', 'Which branch naming format to use'],
+              ].map(([key, desc]) => (
+                <li class="flex items-start gap-3">
+                  <span class="w-1.5 h-1.5 rounded-full bg-uva-600 dark:bg-uva-400 mt-2 shrink-0" />
+                  <span>
+                    <code class="text-uva-700 dark:text-uva-300 font-mono text-xs bg-uva-100 dark:bg-uva-500/10 px-1.5 py-0.5 rounded">{key}</code>
+                    <span class="text-slate-500 dark:text-zinc-400 text-sm ml-2">{desc}</span>
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        
+        <div class="rounded-2xl border border-uva-200/60 dark:border-white/10 bg-[#0d0a14] overflow-hidden shadow-xl shadow-uva-900/10 dark:shadow-black/40">
+          <div class="flex items-center gap-2 px-5 py-3 border-b border-white/5 bg-[#0f0c18]">
+            <div class="w-2.5 h-2.5 rounded-full bg-red-500/60"></div>
+            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/60"></div>
+            <div class="w-2.5 h-2.5 rounded-full bg-green-500/60"></div>
+            <span class="ml-auto text-zinc-600 text-xs font-mono">uva.config.json</span>
+          </div>
+          <pre class="p-6 font-mono text-sm leading-7 overflow-x-auto"><code><span class="text-zinc-600">{`{`}</span>
+  <span class="text-uva-400">"project"</span><span class="text-zinc-400">: {`{`}</span>
+    <span class="text-uva-400">"name"</span><span class="text-zinc-400">:</span> <span class="text-folha">"My Awesome App"</span>
+  <span class="text-zinc-400">{`}`},</span>
+  <span class="text-uva-400">"commit"</span><span class="text-zinc-400">: {`{`}</span>
+    <span class="text-uva-400">"ticketEnabled"</span><span class="text-zinc-400">:</span> <span class="text-orange-400">true</span><span class="text-zinc-400">,</span>
+    <span class="text-uva-400">"ticketPrefix"</span><span class="text-zinc-400">:</span>  <span class="text-folha">"PROJ"</span><span class="text-zinc-400">,</span>
+    <span class="text-uva-400">"format"</span><span class="text-zinc-400">:</span>        <span class="text-folha">"conventional-ticket"</span>
+  <span class="text-zinc-400">{`}`},</span>
+  <span class="text-uva-400">"branch"</span><span class="text-zinc-400">: {`{`}</span>
+    <span class="text-uva-400">"sources"</span><span class="text-zinc-400">:</span>       <span class="text-zinc-400">[</span><span class="text-folha">"main"</span><span class="text-zinc-400">,</span> <span class="text-folha">"develop"</span><span class="text-zinc-400">],</span>
+    <span class="text-uva-400">"ticketEnabled"</span><span class="text-zinc-400">:</span> <span class="text-orange-400">true</span><span class="text-zinc-400">,</span>
+    <span class="text-uva-400">"format"</span><span class="text-zinc-400">:</span>        <span class="text-folha">"type-ticket-name"</span>
+  <span class="text-zinc-400">{`}`}</span>
+<span class="text-zinc-600">{`}`}</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <section id="install" class="py-24 px-6 border-t border-uva-200/50 dark:border-white/5">
+    <div class="max-w-3xl mx-auto text-center">
+
+      <h2 class="text-4xl lg:text-5xl font-bold tracking-tight mb-6 text-uva-ink dark:text-white">
+        Start shipping better commits
+        <br />
+        <span class="bg-gradient-to-r from-uva-700 via-uva-600 to-uva-400 dark:from-uva-300 dark:via-uva-400 dark:to-uva-600 bg-clip-text text-transparent">
+          in 30 seconds
+        </span>
+      </h2>
+
+      <p class="text-slate-500 dark:text-zinc-400 text-lg mb-12 max-w-xl mx-auto">
+        Global install, then run <code class="text-uva-700 dark:text-uva-300 font-mono">uva init</code> inside any git repo. That's it.
+      </p>
+
+      <div class="space-y-3 text-left max-w-lg mx-auto mb-10">
+        {
+          [
+            ['npm install -g uva-cli', 'Install globally via npm'],
+            ['cd your-project', 'Go to your git repository'],
+            ['uva init', 'Configure for your project'],
+            ['uva commit', 'Start committing beautifully'],
+          ].map(([cmd, desc], i) => (
+            <div class="flex items-center gap-4 p-4 rounded-xl border border-uva-200/60 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60">
+              <span class="w-6 h-6 rounded-full bg-uva-100 dark:bg-zinc-800 border border-uva-200 dark:border-zinc-700 flex items-center justify-center text-xs text-uva-700 dark:text-zinc-500 font-medium shrink-0">{i + 1}</span>
+              <code class="font-mono text-sm text-uva-ink dark:text-white flex-1">{cmd}</code>
+              <span class="text-xs text-slate-400 dark:text-zinc-600 hidden sm:block">{desc}</span>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="flex items-center justify-center flex-wrap gap-4">
+        <a
+          href={GITHUB_URL}
+          target="_blank"
+          rel="noopener"
+          class="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-uva-700 to-uva-600 dark:from-uva-600 dark:to-uva-500 text-white font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-uva-700/25 dark:shadow-uva-600/30"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          View on GitHub
+        </a>
+        <a
+          href="https://www.npmjs.com/package/uva-cli"
+          target="_blank"
+          rel="noopener"
+          class="flex items-center gap-2 px-7 py-3.5 rounded-xl border border-uva-300/60 dark:border-zinc-700 text-slate-600 dark:text-zinc-300 hover:text-uva-700 dark:hover:text-white hover:border-uva-400 dark:hover:border-zinc-500 font-medium transition-all hover:bg-uva-50 dark:hover:bg-zinc-900"
+        >
+          npm registry →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  
+  <footer class="border-t border-uva-200/50 dark:border-white/5 py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <img src="/uva-cli/logo.svg" alt="" class="w-5 h-auto opacity-70" aria-hidden="true" />
+        <span class="text-sm font-semibold text-slate-400 dark:text-zinc-500">uva-cli</span>
+        <span class="text-slate-300 dark:text-zinc-700 text-sm">&mdash;</span>
+        <span class="text-slate-400 dark:text-zinc-600 text-sm">MIT License</span>
+      </div>
+      <div class="flex items-center gap-6 text-sm text-slate-400 dark:text-zinc-600">
+        <a href={GITHUB_URL} target="_blank" rel="noopener" class="hover:text-uva-700 dark:hover:text-zinc-300 transition-colors">GitHub</a>
+        <a href="https://www.npmjs.com/package/uva-cli" target="_blank" rel="noopener" class="hover:text-uva-700 dark:hover:text-zinc-300 transition-colors">npm</a>
+        <a href={`${GITHUB_URL}/blob/main/RELEASE_NOTES.md`} target="_blank" rel="noopener" class="hover:text-uva-700 dark:hover:text-zinc-300 transition-colors">Changelog</a>
+      </div>
+    </div>
+  </footer>
+</Layout>
+
+<style>
+  .cursor {
+    animation: blink 1s step-end infinite;
+    color: #a78bfa;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+  #terminal-output {
+    scrollbar-width: thin;
+    scrollbar-color: #3f3f46 transparent;
+  }
+  #terminal-output::-webkit-scrollbar { width: 4px; }
+  #terminal-output::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }
+  .animate-fade-up { animation: fadeUp 0.6s ease-out both; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<script>
+  // ── THEME TOGGLE ─────────────────────────────────────────────────────────
+  const themeToggle = document.getElementById('theme-toggle');
+  const sunIcon     = document.getElementById('sun-icon');
+  const moonIcon    = document.getElementById('moon-icon');
+  const html        = document.documentElement;
+
+  function applyTheme(dark: boolean) {
+    html.classList.toggle('dark', dark);
+    sunIcon?.classList.toggle('hidden', !dark);
+    moonIcon?.classList.toggle('hidden', dark);
+    localStorage.setItem('uva-theme', dark ? 'dark' : 'light');
+  }
+
+  // Init icons from current state
+  applyTheme(html.classList.contains('dark'));
+
+  themeToggle?.addEventListener('click', () => {
+    applyTheme(!html.classList.contains('dark'));
+  });
+
+  // ── COPY BUTTON ──────────────────────────────────────────────────────────
+  const copyBtn   = document.getElementById('copy-btn');
+  const copyIcon  = document.getElementById('copy-icon');
+  const checkIcon = document.getElementById('check-icon');
+
+  copyBtn?.addEventListener('click', () => {
+    navigator.clipboard.writeText('npm install -g uva-cli').then(() => {
+      copyIcon?.classList.add('hidden');
+      checkIcon?.classList.remove('hidden');
+      setTimeout(() => {
+        copyIcon?.classList.remove('hidden');
+        checkIcon?.classList.add('hidden');
+      }, 2000);
+    });
+  });
+
+  // ── TERMINAL ANIMATION ───────────────────────────────────────────────────
+  class TerminalDemo {
+    private output: HTMLElement;
+    private lines: string[] = [];
+
+    constructor(el: HTMLElement) {
+      this.output = el;
+      this.start();
+    }
+
+    private sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
+
+    private addLine(html = '') {
+      this.lines.push(html);
+      this.render();
+    }
+
+    private updateLast(html: string) {
+      if (this.lines.length) { this.lines[this.lines.length - 1] = html; this.render(); }
+    }
+
+    private render() {
+      this.output.innerHTML = this.lines.map(l => `<div class="min-h-[1.5rem]">${l}</div>`).join('');
+      this.output.scrollTop = this.output.scrollHeight;
+    }
+
+    private async typeCommand(cmd: string) {
+      let typed = '';
+      this.addLine(`<span class="text-zinc-600">$ </span><span class="cursor">▋</span>`);
+      for (const char of cmd) {
+        typed += char;
+        this.updateLast(`<span class="text-zinc-600">$ </span><span class="text-white">${typed}</span><span class="cursor">▋</span>`);
+        await this.sleep(75 + Math.random() * 40);
+      }
+      this.updateLast(`<span class="text-zinc-600">$ </span><span class="text-white">${cmd}</span>`);
+      await this.sleep(350);
+    }
+
+    private async typeText(prefix: string, text: string, speed = 90) {
+      let typed = '';
+      this.addLine(`${prefix}<span class="cursor">▋</span>`);
+      for (const char of text) {
+        typed += char;
+        const s = typed.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        this.updateLast(`${prefix}<span class="text-white">${s}</span><span class="cursor">▋</span>`);
+        await this.sleep(speed + Math.random() * 25);
+      }
+      const s = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      this.updateLast(`${prefix}<span class="text-white">${s}</span>`);
+      await this.sleep(400);
+    }
+
+    private async runCommitDemo() {
+      await this.typeCommand('uva commit');
+      this.addLine('');
+      await this.sleep(200);
+
+      this.addLine(`<span style="color:#a78bfa">◆</span>  <span class="text-white font-medium">Select commit type</span>`);
+      await this.sleep(250);
+      this.addLine(`  <span style="color:#a78bfa">❯ ●</span> <span class="text-white">feat</span>   <span class="text-zinc-500">✨  A new feature</span>`);
+      this.addLine(`    <span class="text-zinc-700">○</span> <span class="text-zinc-500">fix</span>    <span class="text-zinc-600">🐛  A bug fix</span>`);
+      this.addLine(`    <span class="text-zinc-700">○</span> <span class="text-zinc-500">docs</span>   <span class="text-zinc-600">📝  Documentation</span>`);
+      await this.sleep(1100);
+      this.addLine('');
+
+      this.addLine(`<span style="color:#a78bfa">◆</span>  <span class="text-white font-medium">Ticket number</span>`);
+      await this.sleep(150);
+      await this.typeText('   ', 'PROJ-42', 110);
+      this.addLine('');
+
+      this.addLine(`<span style="color:#a78bfa">◆</span>  <span class="text-white font-medium">Commit message</span>`);
+      await this.sleep(150);
+      await this.typeText('   ', 'add interactive branch wizard', 72);
+      this.addLine('');
+
+      this.addLine(`<span style="color:#34d399">✔</span>  <span style="color:#34d399" class="font-medium">Committed successfully</span>`);
+      await this.sleep(180);
+      this.addLine(`   <span class="text-zinc-300">feat(PROJ-42): add interactive branch wizard</span>`);
+      await this.sleep(180);
+      this.addLine(`   <span class="text-zinc-600">↳ on branch</span> <span style="color:#a78bfa">feat/PROJ-42_branch-wizard</span>`);
+    }
+
+    private async runBranchDemo() {
+      await this.typeCommand('uva branch');
+      this.addLine('');
+      await this.sleep(200);
+
+      this.addLine(`<span style="color:#a78bfa">◆</span>  <span class="text-white font-medium">Select source branch</span>`);
+      await this.sleep(250);
+      this.addLine(`  <span style="color:#a78bfa">❯ ●</span> <span class="text-white">main</span>`);
+      this.addLine(`    <span class="text-zinc-700">○</span> <span class="text-zinc-500">develop</span>`);
+      await this.sleep(1000);
+      this.addLine('');
+
+      this.addLine(`<span style="color:#a78bfa">◆</span>  <span class="text-white font-medium">Branch type</span>`);
+      await this.sleep(250);
+      this.addLine(`  <span style="color:#a78bfa">❯ ●</span> <span class="text-white">feat</span>   <span class="text-zinc-500">A new feature</span>`);
+      this.addLine(`    <span class="text-zinc-700">○</span> <span class="text-zinc-500">fix</span>    <span class="text-zinc-600">A bug fix</span>`);
+      await this.sleep(1000);
+      this.addLine('');
+
+      this.addLine(`<span style="color:#a78bfa">◆</span>  <span class="text-white font-medium">Ticket number</span>`);
+      await this.sleep(150);
+      await this.typeText('   ', 'PROJ-42', 110);
+      this.addLine('');
+
+      this.addLine(`<span style="color:#a78bfa">◆</span>  <span class="text-white font-medium">Branch name</span>`);
+      await this.sleep(150);
+      await this.typeText('   ', 'auth refresh token', 82);
+      this.addLine('');
+
+      this.addLine(`<span style="color:#34d399">✔</span>  <span style="color:#34d399" class="font-medium">Branch created &amp; switched</span>`);
+      await this.sleep(180);
+      this.addLine(`   <span class="text-zinc-300">feat/PROJ-42_auth-refresh-token</span>`);
+      await this.sleep(180);
+      this.addLine(`   <span class="text-zinc-600">↳ branched from</span> <span style="color:#a78bfa">main</span>`);
+    }
+
+    private async start() {
+      while (true) {
+        this.lines = []; this.render();
+        await this.runCommitDemo();
+        await this.sleep(3500);
+        this.lines = []; this.render();
+        await this.runBranchDemo();
+        await this.sleep(3500);
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('terminal-output');
+    if (el) new TerminalDemo(el as HTMLElement);
+  });
+</script>

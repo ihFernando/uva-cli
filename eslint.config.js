@@ -5,7 +5,7 @@ export default [
   js.configs.recommended,
   {
     files: ['**/*.mjs', '**/*.js'],
-    ignores: ['node_modules/**', 'templates/**'],
+    ignores: ['node_modules/**', 'templates/**', 'site/**'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',

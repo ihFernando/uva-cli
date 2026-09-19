@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 0 80 125" width="80" height="100" role="img" aria-label="uva-cli logo">
+  <g stroke="#0F9D6B" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M60 30 V12"/>
+    <path d="M44 3 L34 12 L44 21"/>
+    <path d="M76 3 L86 12 L76 21"/>
+  </g>
+  <g fill="#6D28D9">
+    <circle cx="47" cy="42" r="12"/><circle cx="73" cy="42" r="12"/>
+    <circle cx="34" cy="65" r="12"/><circle cx="60" cy="65" r="12"/><circle cx="86" cy="65" r="12"/>
+    <circle cx="47" cy="88" r="12"/><circle cx="73" cy="88" r="12"/>
+    <circle cx="60" cy="110" r="10"/>
+  </g>
+</svg>
