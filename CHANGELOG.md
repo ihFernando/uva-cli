@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-09-26
+
+### Added
+
+- **push**: after a successful `uva push`, UVA CLI offers to open a pull request (or merge request) in the browser — supports GitHub, GitLab and Bitbucket, detected from the `origin` remote URL. Skipped with `--yes` or when the remote isn't recognized (other hosts, `ssh://` URLs)
+
 ## [1.4.0] - 2026-09-13
 
 ### Changed

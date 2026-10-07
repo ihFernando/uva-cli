@@ -1,3 +1,17 @@
+## 1.5.0
+
+### Open a pull request right after `uva push`
+
+Once your branch is pushed, UVA CLI asks whether to open a pull request in the browser. The link is built from your `origin` remote, so it works with HTTPS remotes and scp-style SSH remotes (`git@host:owner/repo.git`) on:
+
+- **GitHub** — opens the compare page for your branch
+- **GitLab** — opens a new merge request with your branch as the source
+- **Bitbucket** — opens a new pull request from your branch
+
+The prompt is skipped when running `uva push --yes`, or when the remote isn't recognized (another host, or an `ssh://` URL).
+
+---
+
 ## 1.4.0
 
 ### Commit flow reordered

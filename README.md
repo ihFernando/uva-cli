@@ -105,7 +105,7 @@ This creates a **`uva.config.json`** at your repository root. Commit it — ever
 uva start     # interactive menu — pick what to do
 uva commit    # guided commit: type → ticket → message → file selection
 uva branch    # guided branch: source → ticket → type → task name
-uva push      # confirms and pushes the current branch to origin
+uva push      # confirms, pushes the current branch to origin, then offers to open a PR
 ```
 
 ## Commands
